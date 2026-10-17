@@ -167,6 +167,11 @@ context-engineering-workflow/
 uv run app.py or streamlit run app.py
 ```
 
+For a standalone way to gather current web sources without starting the RAG
+stack, see the [Parallel Search MCP research example](examples/README.md). It
+provides anonymous search and page fetching with source URLs while leaving the
+application's Firecrawl workflow unchanged.
+
 ## Key Features
 
 ### 1. Extended citations support

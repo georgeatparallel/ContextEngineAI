@@ -73,6 +73,13 @@ def http_url(value: str) -> str:
     return value
 
 
+def error_message(error: Exception) -> str:
+    # The SDK's concurrent transport can wrap network failures in task groups.
+    if isinstance(error, ExceptionGroup):
+        return "; ".join(error_message(item) for item in error.exceptions)
+    return str(error) or type(error).__name__
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--timeout", type=positive_seconds, default=60, help="total deadline in seconds")
@@ -116,7 +123,7 @@ def main(argv=None) -> int:
         print("Research timed out; try a narrower objective or a longer --timeout.", file=sys.stderr)
         return 1
     except Exception as error:
-        print(f"Research failed: {error}", file=sys.stderr)
+        print(f"Research failed: {error_message(error)}", file=sys.stderr)
         return 1
     print(text)
     return 0

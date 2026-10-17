@@ -144,7 +144,7 @@ class OutputTests(unittest.TestCase):
         run.assert_awaited_once_with("web_fetch", {"session_id": "research-id", "urls": ["https://example.org/paper"], "full_content": False, "objective": "Evaluation", "search_queries": ["retrieval research"]}, 60)
 
     def test_failures_exit_nonzero_without_success_output(self):
-        for error in (RuntimeError("quota exhausted"), TimeoutError()):
+        for error in (RuntimeError("quota exhausted"), TimeoutError(), ExceptionGroup("transport", [httpx.ConnectError("Certificate verification failed")])):
             with self.subTest(error=type(error).__name__):
                 stdout, stderr = io.StringIO(), io.StringIO()
                 with patch.object(example, "collect_context", AsyncMock(side_effect=error)), contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
@@ -152,6 +152,9 @@ class OutputTests(unittest.TestCase):
                 self.assertEqual(code, 1)
                 self.assertEqual(stdout.getvalue(), "")
                 self.assertTrue(stderr.getvalue())
+                if isinstance(error, ExceptionGroup):
+                    self.assertIn("Certificate verification failed", stderr.getvalue())
+                    self.assertNotIn("transport", stderr.getvalue())
 
     def test_invalid_inputs_do_not_connect(self):
         cases = [
